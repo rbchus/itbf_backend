@@ -46,3 +46,5 @@ Instalación una vez instalada y cargada la base de datos
 4 configura el archivo .env
 5 php artisan key:generate
 6 php artisan serve
+
+NOTA: tener en cuanta el .env esta para despliege en la nube para local editar el .env como esta en .env.example
