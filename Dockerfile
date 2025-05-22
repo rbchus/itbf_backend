@@ -1,31 +1,33 @@
-# Imagen base de PHP con Apache
-FROM php:8.2-apache
+FROM composer:2.6 AS build
 
-# Instalar extensiones necesarias de PHP y herramientas
-RUN apt-get update && apt-get install -y \
-    git unzip curl libpng-dev libonig-dev libxml2-dev zip libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql zip
-
-# Habilitar mod_rewrite para Laravel
-RUN a2enmod rewrite
-
-# Establecer el directorio de trabajo
-WORKDIR /var/www/html
-
-# Copiar archivos del proyecto al contenedor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --prefer-dist --no-scripts --no-interaction
 COPY . .
 
-# Instalar Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+FROM php:8.2-apache
 
-# Instalar dependencias de Laravel
-RUN composer install --no-dev --optimize-autoloader
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    zip unzip git curl \
+    && docker-php-ext-install pdo pdo_pgsql
 
-# Dar permisos a las carpetas de Laravel
+RUN a2enmod rewrite
+
+# Corrige el error de ServerName
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+# Cambia el DocumentRoot a /public
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+
+COPY --from=build /app /var/www/html
+
+WORKDIR /var/www/html
+
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 storage bootstrap/cache
+    && chmod -R 755 /var/www/html/storage
 
-# Puerto por defecto de Apache
 EXPOSE 80
 
-# Comando para iniciar Apache
+CMD ["apache2-foreground"]
+
