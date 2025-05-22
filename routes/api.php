@@ -8,8 +8,8 @@ use App\Http\Controllers\Api\AcomodacionController;
 use App\Http\Controllers\Api\HabitacionController;
 
 // Ruta de prueba por defecto
-Route::get('/ping', function () {
-    return response()->json(['message' => 'API Hoteles Decameron'], 200);
+Route::get('/', function () {
+    return response()->json(['message' => 'API Hoteles Prueba ITBF'], 200);
 });
 
 // Rutas tipo REST
